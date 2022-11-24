@@ -18,7 +18,8 @@ const client = new MongoClient(uri, {
   useUnifiedTopology: true,
   serverApi: ServerApiVersion.v1,
 });
-
+// Collection
+const Brands = client.db("Cell-Cart").collection("Brands");
 //Server Run Function
 
 async function run() {
@@ -37,9 +38,26 @@ run();
 
 // Initial Server Load
 app.get("/", (req, res) => {
-  res.send(" Cell Cart Server is Running", port);
+  res.send(" Cell Cart Server is Running");
 });
 
+//Brand Category get
+
+app.get("/brands", async (req, res) => {
+  try {
+    const brands = await Brands.find({}).toArray();
+    res.send({
+      status: true,
+      brands: brands,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
 // //App Listener
 
 app.listen(port, () => {
