@@ -91,6 +91,23 @@ app.post("/products", async (req, res) => {
   }
 });
 
+app.get("/products/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const products = await Products.find({ brandId: id }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
 // //App Listener
 app.listen(port, () => {
   console.log("Server is conneted at port:", port);
