@@ -20,6 +20,10 @@ const client = new MongoClient(uri, {
 });
 // Collection
 const Brands = client.db("Cell-Cart").collection("Brands");
+const Products = client.db("Cell-Cart").collection("Products");
+const Users = client.db("Cell-Cart").collection("Users");
+const Orders = client.db("Cell-Cart").collection("Orders");
+
 //Server Run Function
 
 async function run() {
@@ -58,8 +62,36 @@ app.get("/brands", async (req, res) => {
     });
   }
 });
-// //App Listener
 
+// Product GET POST DELETE PUT
+
+app.post("/products", async (req, res) => {
+  try {
+    const products = req.body;
+
+    const result = await Products.insertOne(products);
+
+    if (result.insertedId) {
+      res.send({
+        status: true,
+        message: "Product Added",
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Failed to add the product",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
+// //App Listener
 app.listen(port, () => {
   console.log("Server is conneted at port:", port);
 });
