@@ -232,10 +232,28 @@ app.get("/users", async (req, res) => {
   try {
     const name = req.query.name;
 
-    const products = await Users.find({ role: name }).toArray();
+    const users = await Users.find({ role: name }).toArray();
     res.send({
       status: true,
-      products: products,
+      users: users,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
+app.get("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const user = await Users.findOne({ email: id });
+    res.send({
+      status: true,
+      user: user,
     });
   } catch (error) {
     console.log(error);
