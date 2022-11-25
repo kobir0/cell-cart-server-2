@@ -164,6 +164,7 @@ app.delete("/products/:id", async (req, res) => {
     });
   }
 });
+
 app.put("/products/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -191,11 +192,15 @@ app.put("/products/:id", async (req, res) => {
 
 app.post("/users", async (req, res) => {
   try {
-    const user = req.body;
-    const alreadyUser = await Users.findOne({ email: req?.body?.email });
-    if (req?.body?.email === alreadyUser.email) {
+    const user = req?.body;
+    const email = user?.email;
+    console.log(user, email);
+
+    const alreadyUser = await Users.findOne({ email: email });
+    console.log(alreadyUser);
+    if (alreadyUser) {
       return res.send({
-        email: req?.body?.email,
+        email: email,
         message: "User Already Exist to Db",
       });
     }
@@ -205,7 +210,7 @@ app.post("/users", async (req, res) => {
     if (result.insertedId) {
       res.send({
         status: true,
-        email: req?.body?.email,
+        email: email,
         message: "User Added",
       });
     } else {
@@ -219,6 +224,24 @@ app.post("/users", async (req, res) => {
     res.send({
       status: false,
       message: error.message,
+    });
+  }
+});
+
+app.get("/users", async (req, res) => {
+  try {
+    const name = req.query.name;
+
+    const products = await Users.find({ role: name }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
     });
   }
 });
