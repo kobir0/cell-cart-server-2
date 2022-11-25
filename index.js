@@ -107,6 +107,22 @@ app.get("/products/:id", async (req, res) => {
     });
   }
 });
+app.get("/products", async (req, res) => {
+  try {
+    const email = req.query.email;
+    const products = await Products.find({ email: email }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
 
 // //App Listener
 app.listen(port, () => {
