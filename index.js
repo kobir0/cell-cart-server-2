@@ -110,7 +110,26 @@ app.get("/products/:id", async (req, res) => {
 app.get("/products", async (req, res) => {
   try {
     const email = req.query.email;
+
     const products = await Products.find({ email: email }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
+app.get("/advertised", async (req, res) => {
+  try {
+    const products = await Products.find({
+      reqField: { advertiseItem: true },
+    }).toArray();
     res.send({
       status: true,
       products: products,
@@ -137,6 +156,28 @@ app.delete("/products/:id", async (req, res) => {
     } else {
       res.send({ status: false, message: "Somenthing Went Wrong ! Try Again" });
     }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+app.put("/products/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const reqField = req.body;
+    const query = { _id: ObjectId(id) };
+    const upsert = { upsert: true };
+    const updated = {
+      $set: {
+        reqField,
+      },
+    };
+
+    const result = await Products.updateOne(query, updated, upsert);
+    res.send(result);
   } catch (error) {
     console.log(error);
     res.send({
