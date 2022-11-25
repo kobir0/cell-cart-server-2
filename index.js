@@ -187,6 +187,42 @@ app.put("/products/:id", async (req, res) => {
   }
 });
 
+///Users Collection
+
+app.post("/users", async (req, res) => {
+  try {
+    const user = req.body;
+    const alreadyUser = await Users.findOne({ email: req?.body?.email });
+    if (req?.body?.email === alreadyUser.email) {
+      return res.send({
+        email: req?.body?.email,
+        message: "User Already Exist to Db",
+      });
+    }
+
+    const result = await Users.insertOne(user);
+
+    if (result.insertedId) {
+      res.send({
+        status: true,
+        email: req?.body?.email,
+        message: "User Added",
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Failed to add the User",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
 // //App Listener
 app.listen(port, () => {
   console.log("Server is conneted at port:", port);
