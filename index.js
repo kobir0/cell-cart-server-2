@@ -64,7 +64,7 @@ app.get("/brands", async (req, res) => {
 });
 
 // Product GET POST DELETE PUT
-
+//Post Product
 app.post("/products", async (req, res) => {
   try {
     const products = req.body;
@@ -91,6 +91,8 @@ app.post("/products", async (req, res) => {
   }
 });
 
+//Get products by id
+
 app.get("/products/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -107,29 +109,14 @@ app.get("/products/:id", async (req, res) => {
     });
   }
 });
+
+//Get products by email query
+
 app.get("/products", async (req, res) => {
   try {
     const email = req.query.email;
 
     const products = await Products.find({ email: email }).toArray();
-    res.send({
-      status: true,
-      products: products,
-    });
-  } catch (error) {
-    console.log(error);
-    res.send({
-      status: false,
-      message: error,
-    });
-  }
-});
-
-app.get("/advertised", async (req, res) => {
-  try {
-    const products = await Products.find({
-      reqField: { advertiseItem: true },
-    }).toArray();
     res.send({
       status: true,
       products: products,
@@ -165,6 +152,8 @@ app.delete("/products/:id", async (req, res) => {
   }
 });
 
+//Advetised Put
+
 app.put("/products/:id", async (req, res) => {
   try {
     const id = req.params.id;
@@ -172,9 +161,7 @@ app.put("/products/:id", async (req, res) => {
     const query = { _id: ObjectId(id) };
     const upsert = { upsert: true };
     const updated = {
-      $set: {
-        reqField,
-      },
+      $set: reqField,
     };
 
     const result = await Products.updateOne(query, updated, upsert);
@@ -184,6 +171,44 @@ app.put("/products/:id", async (req, res) => {
     res.send({
       status: false,
       message: error.message,
+    });
+  }
+});
+
+//Get Adveried Items
+
+app.get("/advertised", async (req, res) => {
+  try {
+    const products = await Products.find({
+      advertiseItem: true,
+      status: "Available",
+    }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+app.get("/reported", async (req, res) => {
+  try {
+    const products = await Products.find({
+      reported: true,
+    }).toArray();
+    res.send({
+      status: true,
+      products: products,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
     });
   }
 });
