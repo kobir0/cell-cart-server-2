@@ -264,6 +264,49 @@ app.get("/users/:id", async (req, res) => {
   }
 });
 
+app.delete("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const result = await Users.deleteOne({ _id: ObjectId(id) });
+
+    if (result.deletedCount) {
+      res.send({
+        status: true,
+        message: "Deleted successfully !!",
+      });
+    } else {
+      res.send({ status: false, message: "Somenthing Went Wrong ! Try Again" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
+app.put("/users/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const reqField = req.body;
+    const query = { _id: ObjectId(id) };
+    const upsert = { upsert: true };
+    const updated = {
+      $set: reqField,
+    };
+
+    const result = await Users.updateOne(query, updated, upsert);
+    res.send(result);
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
 // //App Listener
 app.listen(port, () => {
   console.log("Server is conneted at port:", port);
