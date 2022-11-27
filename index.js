@@ -6,7 +6,7 @@ const port = process.env.PORT || 5000;
 const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 require("colors");
-
+const stripe = require("stripe")(process.env.STRIPE_SECRET);
 //Middleware
 app.use(cors());
 app.use(express.json());
@@ -43,6 +43,31 @@ run();
 // Initial Server Load
 app.get("/", (req, res) => {
   res.send(" Cell Cart Server is Running");
+});
+
+///Stripe Post Request
+app.post("/create-payment-intent", async (req, res) => {
+  try {
+    const booking = req.body;
+    const price = booking.price;
+    const amount = price * 100;
+
+    const paymentIntent = await stripe.paymentIntents.create({
+      amount: amount,
+      currency: "usd",
+      payment_method_types: ["card"],
+    });
+
+    res.send({
+      clientSecret: paymentIntent.client_secret,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
 });
 
 //Brand Category get
@@ -96,7 +121,10 @@ app.post("/products", async (req, res) => {
 app.get("/products/:id", async (req, res) => {
   try {
     const id = req.params.id;
-    const products = await Products.find({ brandId: id }).toArray();
+    const products = await Products.find({
+      brandId: id,
+      status: "Available",
+    }).toArray();
     res.send({
       status: true,
       products: products,
@@ -250,14 +278,53 @@ app.post("/orders", async (req, res) => {
   }
 });
 
+app.put("/orders/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+    const reqField = req.body;
+    const query = { _id: ObjectId(id) };
+    const upsert = { upsert: true };
+    const updated = {
+      $set: reqField,
+    };
+
+    const result = await Orders.updateOne(query, updated, upsert);
+    res.send(result);
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
+app.get("/orders", async (req, res) => {
+  try {
+    const email = req.query.email;
+
+    const orders = await Orders.find({ email: email }).toArray();
+    res.send({
+      status: true,
+      orders: orders,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
 app.get("/orders/:id", async (req, res) => {
   try {
     const id = req.params.id;
 
-    const orders = await Orders.find({ email: id }).toArray();
+    const order = await Orders.findOne({ _id: ObjectId(id) });
     res.send({
       status: true,
-      orders: orders,
+      order: order,
     });
   } catch (error) {
     console.log(error);
@@ -279,10 +346,11 @@ app.post("/users", async (req, res) => {
     const alreadyUser = await Users.findOne({ email: email });
     console.log(alreadyUser);
     if (alreadyUser) {
-      return res.send({
+      res.send({
         email: email,
         message: "User Already Exist to Db",
       });
+      return;
     }
 
     const result = await Users.insertOne(user);
