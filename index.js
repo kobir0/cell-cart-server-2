@@ -169,7 +169,7 @@ app.delete("/products/:id", async (req, res) => {
         message: "Deleted successfully !!",
       });
     } else {
-      res.send({ status: false, message: "Somenthing Went Wrong ! Try Again" });
+      res.send({ status: false, message: "Something Went Wrong ! Try Again" });
     }
   } catch (error) {
     console.log(error);
