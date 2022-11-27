@@ -213,6 +213,61 @@ app.get("/reported", async (req, res) => {
   }
 });
 
+//orders Collection
+app.post("/orders", async (req, res) => {
+  try {
+    const order = req?.body;
+
+    const alreadyAdded = await Orders.findOne({
+      email: order?.email,
+      productId: order?.productId,
+    });
+
+    if (alreadyAdded) {
+      return res.send({
+        status: true,
+        message: "Order already booked for you",
+      });
+    }
+    const result = await Orders.insertOne(order);
+    if (result.insertedId) {
+      res.send({
+        status: true,
+        message: "Order Added Successfully",
+      });
+    } else {
+      res.send({
+        status: false,
+        message: "Something went wrong !",
+      });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error.message,
+    });
+  }
+});
+
+app.get("/orders/:id", async (req, res) => {
+  try {
+    const id = req.params.id;
+
+    const orders = await Orders.find({ email: id }).toArray();
+    res.send({
+      status: true,
+      orders: orders,
+    });
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
 ///Users Collection
 
 app.post("/users", async (req, res) => {
