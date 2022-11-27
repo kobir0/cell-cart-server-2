@@ -227,6 +227,7 @@ app.get("/reported", async (req, res) => {
   try {
     const products = await Products.find({
       reported: true,
+      status: "Available",
     }).toArray();
     res.send({
       status: true,
@@ -254,7 +255,7 @@ app.post("/orders", async (req, res) => {
     if (alreadyAdded) {
       return res.send({
         status: true,
-        message: "Order already booked for you",
+        message: "Order already booked try another",
       });
     }
     const result = await Orders.insertOne(order);
