@@ -45,6 +45,45 @@ app.get("/", (req, res) => {
   res.send(" Cell Cart Server is Running");
 });
 
+app.get("/jwt", async (req, res) => {
+  try {
+    const email = req.query.email;
+    const user = await Users.findOne({ email: email });
+
+    if (user) {
+      const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
+        expiresIn: "1h",
+      });
+      res.send({ accessToken: token });
+    } else {
+      res.status(403).send({ accessToken: "" });
+    }
+  } catch (error) {
+    console.log(error);
+    res.send({
+      status: false,
+      message: error,
+    });
+  }
+});
+
+//Verify jwt token
+function verifyJWT(req, res, next) {
+  console.log("inside verify", req.headers.author);
+  const token = req.headers.author;
+  if (!token) {
+    return res.status(401).send("Unauthorized Access");
+  }
+
+  jwt.verify(token, process.env.ACCESS_TOKEN, function (err, decoded) {
+    if (err) {
+      res.status(403).send("Forbidden Access");
+    }
+    req.decoded = decoded;
+    next();
+  });
+}
+
 ///Stripe Post Request
 app.post("/create-payment-intent", async (req, res) => {
   try {
@@ -169,7 +208,7 @@ app.delete("/products/:id", async (req, res) => {
         message: "Deleted successfully !!",
       });
     } else {
-      res.send({ status: false, message: "Something Went Wrong ! Try Again" });
+      res.send({ status: false, message: "Somenthing Went Wrong ! Try Again" });
     }
   } catch (error) {
     console.log(error);
@@ -223,6 +262,7 @@ app.get("/advertised", async (req, res) => {
     });
   }
 });
+
 app.get("/reported", async (req, res) => {
   try {
     const products = await Products.find({
@@ -255,7 +295,7 @@ app.post("/orders", async (req, res) => {
     if (alreadyAdded) {
       return res.send({
         status: true,
-        message: "Order already booked try another",
+        message: "Order already booked Try Another",
       });
     }
     const result = await Orders.insertOne(order);
@@ -300,9 +340,14 @@ app.put("/orders/:id", async (req, res) => {
   }
 });
 
-app.get("/orders", async (req, res) => {
+app.get("/orders", verifyJWT, async (req, res) => {
   try {
     const email = req.query.email;
+
+    const decodedEmail = req?.decoded?.email;
+    if (email !== decodedEmail) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
 
     const orders = await Orders.find({ email: email }).toArray();
     res.send({
@@ -348,6 +393,7 @@ app.post("/users", async (req, res) => {
     console.log(alreadyUser);
     if (alreadyUser) {
       res.send({
+        status: true,
         email: email,
         message: "User Already Exist to Db",
       });
@@ -377,9 +423,15 @@ app.post("/users", async (req, res) => {
   }
 });
 
-app.get("/users", async (req, res) => {
+app.get("/users", verifyJWT, async (req, res) => {
   try {
     const name = req.query.name;
+    const email = req.query.email;
+
+    const decodedEmail = req?.decoded?.email;
+    if (email !== decodedEmail) {
+      return res.status(403).send({ message: "Forbidden Access" });
+    }
 
     const users = await Users.find({ role: name }).toArray();
     res.send({
