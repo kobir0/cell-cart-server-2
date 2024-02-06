@@ -2,7 +2,7 @@ const express = require("express");
 const cors = require("cors");
 const app = express();
 require("dotenv").config();
-const port = process.env.PORT || 5000;
+const port = process.env.PORT || 5001;
 const { MongoClient, ObjectId, ServerApiVersion } = require("mongodb");
 const jwt = require("jsonwebtoken");
 require("colors");
@@ -52,7 +52,7 @@ app.get("/jwt", async (req, res) => {
 
     if (user) {
       const token = jwt.sign({ email }, process.env.ACCESS_TOKEN, {
-        expiresIn: "1h",
+        expiresIn: "24h",
       });
       res.send({ accessToken: token });
     } else {
